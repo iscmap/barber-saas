@@ -19,3 +19,25 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+out/
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Java
+*.class
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env
+.env
+
