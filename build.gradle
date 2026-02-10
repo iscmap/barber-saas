@@ -1,0 +1,16 @@
+plugins {
+  id "base"
+}
+
+allprojects {
+  group = "com.marioalba" // we can rename later if you want
+  version = "0.0.1-SNAPSHOT"
+
+  repositories {
+    mavenCentral()
+  }
+}
+
+subprojects {
+  // Common defaults; real plugins will be applied per module
+}
