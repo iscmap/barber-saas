@@ -1,12 +1,25 @@
 server:
   port: 8081
 
-spring:
-  application:
-    name: booking-service
-
 management:
   endpoints:
     web:
       exposure:
         include: health, info
+
+spring:
+  application:
+    name: booking-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bookingdb
+    username: barber
+    password: barber
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+    open-in-view: false
+  flyway:
+    enabled: true

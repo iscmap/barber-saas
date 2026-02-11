@@ -1,12 +1,23 @@
 server:
   port: 8082
 
-spring:
-  application:
-    name: availability-service
-
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+spring:
+  application:
+    name: availability-service
+
+aws:
+  region: us-east-1
+  dynamodb:
+    endpoint: http://localhost:4566
+
+dynamo:
+  tables:
+    dailyBarbers: shop_daily_barbers
+    reservations: availability_reservations
+    slotLocks: availability_slot_locks

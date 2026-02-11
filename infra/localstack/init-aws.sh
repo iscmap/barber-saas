@@ -32,13 +32,20 @@ awslocal dynamodb create-table \
   --attribute-definitions AttributeName=pk,AttributeType=S AttributeName=sk,AttributeType=S \
   --key-schema AttributeName=pk,KeyType=HASH AttributeName=sk,KeyType=RANGE \
   --billing-mode PAY_PER_REQUEST \
-  >/dev/null || true
+  >/dev/null 2>&1 || true
 
 awslocal dynamodb create-table \
   --table-name availability_reservations \
   --attribute-definitions AttributeName=bookingId,AttributeType=S \
   --key-schema AttributeName=bookingId,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
-  >/dev/null || true
+  >/dev/null 2>&1 || true
 
 echo "LocalStack resources created."
+
+awslocal dynamodb create-table \
+  --table-name availability_slot_locks \
+  --attribute-definitions AttributeName=pk,AttributeType=S AttributeName=sk,AttributeType=S \
+  --key-schema AttributeName=pk,KeyType=HASH AttributeName=sk,KeyType=RANGE \
+  --billing-mode PAY_PER_REQUEST \
+  >/dev/null 2>&1 || true

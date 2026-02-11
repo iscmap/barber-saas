@@ -28,5 +28,5 @@ public class BookingRequest {
   @Min(1)
   private Integer durationMinutes;
 
-  @NotBlank private ServiceType serviceCode;
+  @NotBlank private ServiceCode serviceCode;
 }

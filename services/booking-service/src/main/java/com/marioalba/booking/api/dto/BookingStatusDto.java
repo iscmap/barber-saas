@@ -1,6 +1,6 @@
 package com.marioalba.booking.api.dto;
 
-public enum BookingStatus {
+public enum BookingStatusDto {
   PENDING,
   CONFIRMED,
   REJECTED
