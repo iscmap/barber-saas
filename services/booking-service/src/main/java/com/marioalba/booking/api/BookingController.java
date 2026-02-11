@@ -2,7 +2,7 @@ package com.marioalba.booking.api;
 
 import com.marioalba.booking.api.dto.BookingRequest;
 import com.marioalba.booking.api.dto.BookingResponse;
-import com.marioalba.booking.api.dto.BookingStatus;
+import com.marioalba.booking.api.dto.BookingStatusDto;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.Instant;
@@ -18,16 +18,19 @@ public class BookingController {
       @RequestHeader("Idempotency-Key") String idempotencyKey,
       @Valid @RequestBody BookingRequest request) {
     BookingResponse response =
-        new BookingResponse(
-            "bkg_" + UUID.randomUUID(),
-            request.getShopId(),
-            request.getBarberId(),
-            request.getCustomerId(),
-            request.getDate(),
-            request.getStartTime(),
-            request.getDurationMinutes(),
-            BookingStatus.PENDING,
-            Instant.now());
+        BookingResponse.builder()
+            .bookingId("bkg_" + UUID.randomUUID())
+            .shopId(request.getShopId())
+            .barberId(request.getBarberId())
+            .customerId(request.getCustomerId())
+            .date(request.getDate())
+            .startTime(request.getStartTime())
+            .endTime(request.getStartTime().plusMinutes(request.getDurationMinutes()))
+            .durationMinutes(request.getDurationMinutes())
+            .serviceCode(request.getServiceCode())
+            .status(BookingStatusDto.PENDING)
+            .createdAt(Instant.now())
+            .build();
 
     return ResponseEntity.created(URI.create("/bookings/" + response.getBookingId()))
         .body(response);

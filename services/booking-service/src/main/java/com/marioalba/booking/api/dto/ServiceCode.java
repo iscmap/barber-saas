@@ -1,6 +1,6 @@
 package com.marioalba.booking.api.dto;
 
-public enum ServiceType {
+public enum ServiceCode {
   HAIRCUT,
   BEARD,
   HAIRCUT_AND_BEARD;
