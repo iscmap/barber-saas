@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -93,6 +94,23 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .contentType(PROBLEM_JSON)
         .body(body);
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ProblemResponse> handleNotReadable(
+      HttpMessageNotReadableException ex, HttpServletRequest request) {
+
+    ProblemResponse body =
+        ProblemResponse.builder()
+            .type("https://api.marioalba.com/problems/validation-error")
+            .title("Malformed JSON request")
+            .status(HttpStatus.BAD_REQUEST.value())
+            .detail("Request body is not valid JSON or has invalid field formats")
+            .instance(request.getRequestURI())
+            .correlationId(correlationIdOrNull(request))
+            .build();
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(PROBLEM_JSON).body(body);
   }
 
   private String correlationIdOrNull(HttpServletRequest request) {

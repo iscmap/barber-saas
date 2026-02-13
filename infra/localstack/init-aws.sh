@@ -49,3 +49,26 @@ awslocal dynamodb create-table \
   --key-schema AttributeName=pk,KeyType=HASH AttributeName=sk,KeyType=RANGE \
   --billing-mode PAY_PER_REQUEST \
   >/dev/null 2>&1 || true
+
+# SNS topic for availability results
+awslocal sns create-topic --name availability-results
+
+# booking-service results queue + DLQ
+awslocal sqs create-queue --queue-name booking-availability-results-dlq
+RDLQ_URL=$(awslocal sqs get-queue-url --queue-name booking-availability-results-dlq --query 'QueueUrl' --output text)
+RDLQ_ARN=$(awslocal sqs get-queue-attributes --queue-url "$RDLQ_URL" --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+
+awslocal sqs create-queue \
+  --queue-name booking-availability-results \
+  --attributes "{\"RedrivePolicy\":\"{\\\"deadLetterTargetArn\\\":\\\"$RDLQ_ARN\\\",\\\"maxReceiveCount\\\":\\\"5\\\"}\"}"
+
+# Subscribe booking-service results queue to availability-results topic
+RQ_URL=$(awslocal sqs get-queue-url --queue-name booking-availability-results --query 'QueueUrl' --output text)
+RQ_ARN=$(awslocal sqs get-queue-attributes --queue-url "$RQ_URL" --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+
+# Allow SNS to send messages to the results queue
+awslocal sqs set-queue-attributes \
+  --queue-url "$RQ_URL" \
+  --attributes "{\"Policy\":\"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Sid\\\":\\\"Allow-SNS-SendMessage\\\",\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":\\\"*\\\",\\\"Action\\\":\\\"SQS:SendMessage\\\",\\\"Resource\\\":\\\"$RQ_ARN\\\",\\\"Condition\\\":{\\\"ArnEquals\\\":{\\\"aws:SourceArn\\\":\\\"arn:aws:sns:us-east-1:000000000000:availability-results\\\"}}}]}\"}"
+
+awslocal sns subscribe --topic-arn arn:aws:sns:us-east-1:000000000000:availability-results --protocol sqs --notification-endpoint "$RQ_ARN"
