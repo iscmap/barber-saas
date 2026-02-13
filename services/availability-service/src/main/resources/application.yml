@@ -13,6 +13,7 @@ spring:
 
 aws:
   region: us-east-1
+  endpoint: http://localhost:4566
   dynamodb:
     endpoint: http://localhost:4566
 
@@ -21,3 +22,9 @@ dynamo:
     dailyBarbers: shop_daily_barbers
     reservations: availability_reservations
     slotLocks: availability_slot_locks
+
+messaging:
+  sqs:
+    bookingCreatedQueueUrl: http://localhost:4566/000000000000/availability-booking-created
+  sns:
+    availabilityResultsTopicArn: arn:aws:sns:us-east-1:000000000000:availability-results

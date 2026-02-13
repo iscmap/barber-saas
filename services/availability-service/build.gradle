@@ -9,4 +9,6 @@ dependencies {
 
     implementation platform("software.amazon.awssdk:bom:2.25.60")
     implementation "software.amazon.awssdk:dynamodb"
+    implementation "software.amazon.awssdk:sqs"
+    implementation "software.amazon.awssdk:sns"
 }
