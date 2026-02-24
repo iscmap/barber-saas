@@ -2,7 +2,8 @@ package com.marioalba.booking.api;
 
 import com.marioalba.booking.api.dto.BookingRequest;
 import com.marioalba.booking.api.dto.BookingResponse;
-import com.marioalba.booking.api.dto.BookingStatusDto;
+import com.marioalba.booking.application.BookingMapper;
+import com.marioalba.booking.application.BookingPersistenceService;
 import com.marioalba.booking.events.BookingCreatedV1;
 import com.marioalba.booking.events.EventEnvelope;
 import com.marioalba.booking.messaging.BookingEventPublisher;
@@ -17,29 +18,24 @@ import org.springframework.web.bind.annotation.*;
 public class BookingController {
 
   private final BookingEventPublisher eventPublisher;
+  private final BookingPersistenceService bookingService;
 
-  public BookingController(BookingEventPublisher eventPublisher) {
+  public BookingController(
+      BookingEventPublisher eventPublisher, BookingPersistenceService bookingService) {
     this.eventPublisher = eventPublisher;
+    this.bookingService = bookingService;
   }
 
   @PostMapping("/bookings")
   public ResponseEntity<?> createBooking(
       @RequestHeader("Idempotency-Key") String idempotencyKey,
       @Valid @RequestBody BookingRequest request) {
-    BookingResponse response =
-        BookingResponse.builder()
-            .bookingId("bkg_" + UUID.randomUUID())
-            .shopId(request.getShopId())
-            .barberId(request.getBarberId())
-            .customerId(request.getCustomerId())
-            .date(request.getDate())
-            .startTime(request.getStartTime())
-            .endTime(request.getStartTime().plusMinutes(request.getDurationMinutes()))
-            .durationMinutes(request.getDurationMinutes())
-            .serviceCode(request.getServiceCode())
-            .status(BookingStatusDto.PENDING)
-            .createdAt(Instant.now())
-            .build();
+
+    String bookingId = "bkg_" + UUID.randomUUID();
+
+    // Persist PENDING booking
+    var entity = bookingService.createPending(bookingId, request);
+    var response = BookingMapper.toResponse(entity);
 
     // EVENT PAYLOAD
     BookingCreatedV1 payload =
@@ -72,6 +68,19 @@ public class BookingController {
 
   @GetMapping("/bookings/{bookingId}")
   public ResponseEntity<BookingResponse> getBooking(@PathVariable String bookingId) {
-    return ResponseEntity.notFound().build();
+    return bookingService
+        .findById(bookingId)
+        .map(BookingMapper::toResponse)
+        .map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
+
+  /**
+   * @GetMapping("/bookings/{bookingId}/status") public ResponseEntity<?> getStatus(@PathVariable
+   * String bookingId) { BookingResponse response = bookingService .findById(bookingId)
+   * .map(BookingMapper::toResponse) .map(ResponseEntity::ok) .orElseGet(() ->
+   * ResponseEntity.notFound().build());
+   *
+   * <p>}*
+   */
 }

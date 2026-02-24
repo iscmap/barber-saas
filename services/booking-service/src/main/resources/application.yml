@@ -28,6 +28,11 @@ aws:
   region: us-east-1
   endpoint: http://localhost:4566
 
+booking:
+  saga:
+    pending-timeout-seconds: 30
+    timeout-scan-ms: 1000
+
 messaging:
   sns:
     bookingsTopicArn: arn:aws:sns:us-east-1:000000000000:bookings

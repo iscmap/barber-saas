@@ -43,7 +43,6 @@ public class BookingCreatedConsumer {
 
   @Scheduled(fixedDelay = 1000)
   public void poll() throws Exception {
-
     ReceiveMessageResponse resp =
         sqsClient.receiveMessage(
             ReceiveMessageRequest.builder()
