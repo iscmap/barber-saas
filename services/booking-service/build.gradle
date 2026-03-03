@@ -15,4 +15,6 @@ dependencies {
     implementation "software.amazon.awssdk:sns"
     implementation "software.amazon.awssdk:sqs"
 
+    implementation project(":libs:common-events")
+
 }

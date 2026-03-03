@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marioalba.booking.application.AvailabilityDecision;
 import com.marioalba.booking.application.BookingPersistenceService;
 import com.marioalba.booking.application.BookingSagaOrchestrator;
-import com.marioalba.booking.events.AvailabilityDecisionV1;
-import com.marioalba.booking.events.EventEnvelope;
+import com.marioalba.common.events.EventEnvelope;
+import com.marioalba.common.events.availability.AvailabilityDecidedV1;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,12 +48,27 @@ public class AvailabilityDecisionConsumer {
 
     for (Message msg : resp.messages()) {
       String body = SnsSqsMessageUnwrapper.unwrapIfNeeded(objectMapper, msg.body());
-      EventEnvelope<AvailabilityDecisionV1> envelope =
+      EventEnvelope<AvailabilityDecidedV1> envelope =
           objectMapper.readValue(
               body,
               objectMapper
                   .getTypeFactory()
-                  .constructParametricType(EventEnvelope.class, AvailabilityDecisionV1.class));
+                  .constructParametricType(EventEnvelope.class, AvailabilityDecidedV1.class));
+
+      if (!"v1".equals(envelope.getVersion())) {
+        System.err.println("Ignoring unsupported event version: " + envelope.getVersion());
+        // delete message to avoid infinite retry in dev
+        sqsClient.deleteMessage(
+            DeleteMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .receiptHandle(msg.receiptHandle())
+                .build());
+        continue;
+      }
+
+      if (!"AvailabilityDecided".equals(envelope.getEventType())) {
+        continue;
+      }
 
       if (envelope.getPayload() == null) {
         System.err.println("Invalid envelope (payload is null). Raw message: " + msg.body());
