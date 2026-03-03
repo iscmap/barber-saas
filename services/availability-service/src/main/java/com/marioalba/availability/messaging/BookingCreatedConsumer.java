@@ -89,6 +89,16 @@ public class BookingCreatedConsumer {
         continue;
       }
 
+      if (envelope.getShopId() == null || envelope.getShopId().isBlank()) {
+        System.err.println("Invalid event: missing shopId. Dropping message.");
+        sqsClient.deleteMessage(
+            DeleteMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .receiptHandle(msg.receiptHandle())
+                .build());
+        continue;
+      }
+
       // Stub: always RESERVED (real logic comes Step 5)
       AvailabilityDecidedV1 decision =
           AvailabilityDecidedV1.builder()

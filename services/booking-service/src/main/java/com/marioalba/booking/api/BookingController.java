@@ -28,8 +28,13 @@ public class BookingController {
 
   @PostMapping("/bookings")
   public ResponseEntity<?> createBooking(
+      @RequestHeader("X-Shop-Id") String shopId,
       @RequestHeader("Idempotency-Key") String idempotencyKey,
       @Valid @RequestBody BookingRequest request) {
+
+    if (!shopId.equals(request.getShopId())) {
+      throw new IllegalArgumentException("shopId header does not match request body");
+    }
 
     String bookingId = "bkg_" + UUID.randomUUID();
 
@@ -67,9 +72,10 @@ public class BookingController {
   }
 
   @GetMapping("/bookings/{bookingId}")
-  public ResponseEntity<BookingResponse> getBooking(@PathVariable String bookingId) {
+  public ResponseEntity<BookingResponse> getBooking(
+      @RequestHeader("X-Shop-Id") String shopId, @PathVariable String bookingId) {
     return bookingService
-        .findById(bookingId)
+        .findByIdForShop(bookingId, shopId)
         .map(BookingMapper::toResponse)
         .map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());

@@ -1,7 +1,9 @@
 package com.marioalba.booking.api.error;
 
+import com.marioalba.booking.api.filter.MissingHeaderException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -113,9 +115,26 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(PROBLEM_JSON).body(body);
   }
 
+  @ExceptionHandler(MissingHeaderException.class)
+  public ResponseEntity<ProblemResponse> handleMissingHeader2(
+      MissingHeaderException ex, HttpServletRequest request) {
+
+    ProblemResponse body =
+        ProblemResponse.builder()
+            .type("https://api.marioalba.com/problems/validation-error")
+            .title("Missing required header")
+            .status(HttpStatus.BAD_REQUEST.value())
+            .detail(ex.getMessage())
+            .instance(request.getRequestURI())
+            .correlationId(correlationIdOrNull(request))
+            .build();
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(PROBLEM_JSON).body(body);
+  }
+
   private String correlationIdOrNull(HttpServletRequest request) {
-    // If you haven't added CorrelationIdFilter yet, this will just be null.
-    // Later we’ll standardize correlation id via filter + MDC.
+    String cid = MDC.get("correlationId");
+    if (cid != null) return cid;
     return request.getHeader("X-Correlation-Id");
   }
 }

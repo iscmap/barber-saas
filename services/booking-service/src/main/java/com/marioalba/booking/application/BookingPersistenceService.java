@@ -59,4 +59,8 @@ public class BookingPersistenceService {
       System.err.println("Invalid transition for booking " + bookingId + ": " + ex.getMessage());
     }
   }
+
+  public Optional<BookingEntity> findByIdForShop(String bookingId, String shopId) {
+    return repo.findByBookingIdAndShopId(bookingId, shopId);
+  }
 }
