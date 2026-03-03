@@ -1,9 +1,9 @@
 package com.marioalba.availability.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marioalba.availability.events.AvailabilityDecisionV1;
-import com.marioalba.availability.events.BookingCreatedV1;
-import com.marioalba.availability.events.EventEnvelope;
+import com.marioalba.common.events.EventEnvelope;
+import com.marioalba.common.events.availability.AvailabilityDecidedV1;
+import com.marioalba.common.events.booking.BookingCreatedV1;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,6 +62,21 @@ public class BookingCreatedConsumer {
                   .getTypeFactory()
                   .constructParametricType(EventEnvelope.class, BookingCreatedV1.class));
 
+      if (!"v1".equals(envelope.getVersion())) {
+        System.err.println("Ignoring unsupported event version: " + envelope.getVersion());
+        // delete message to avoid infinite retry in dev
+        sqsClient.deleteMessage(
+            DeleteMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .receiptHandle(msg.receiptHandle())
+                .build());
+        continue;
+      }
+
+      if (!"BookingCreated".equals(envelope.getEventType())) {
+        continue;
+      }
+
       if (envelope.getPayload() == null) {
         System.err.println("Invalid envelope (payload is null). Raw message: " + msg.body());
         // optionally delete message so it doesn't loop forever
@@ -75,15 +90,15 @@ public class BookingCreatedConsumer {
       }
 
       // Stub: always RESERVED (real logic comes Step 5)
-      AvailabilityDecisionV1 decision =
-          AvailabilityDecisionV1.builder()
+      AvailabilityDecidedV1 decision =
+          AvailabilityDecidedV1.builder()
               .bookingId(envelope.getPayload().getBookingId())
               .decision("RESERVED")
               .reason(null)
               .build();
 
-      EventEnvelope<AvailabilityDecisionV1> out =
-          EventEnvelope.<AvailabilityDecisionV1>builder()
+      EventEnvelope<AvailabilityDecidedV1> out =
+          EventEnvelope.<AvailabilityDecidedV1>builder()
               .eventId(UUID.randomUUID().toString())
               .eventType("AvailabilityDecision")
               .version("v1")

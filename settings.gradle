@@ -1,6 +1,8 @@
 rootProject.name = "barber-saas"
 
 include(
-  "services:booking-service",
-  "services:availability-service"
+        "services:booking-service",
+        "services:availability-service"
 )
+
+include("libs:common-events")

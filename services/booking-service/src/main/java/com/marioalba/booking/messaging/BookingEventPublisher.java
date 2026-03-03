@@ -1,7 +1,7 @@
 package com.marioalba.booking.messaging;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.marioalba.booking.events.EventEnvelope;
+import com.marioalba.common.events.EventEnvelope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.sns.SnsClient;
